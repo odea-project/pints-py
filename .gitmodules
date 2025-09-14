@@ -1,3 +1,6 @@
 [submodule "extern/pints-core-sql"]
 	path = extern/pints-core-sql
 	url = https://github.com/odea-project/pints-core-sql.git
+[submodule "extern/pints-plugins"]
+	path = extern/pints-plugins
+	url = https://github.com/odea-project/pints-plugins
