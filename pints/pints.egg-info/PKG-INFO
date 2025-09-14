@@ -1,0 +1,112 @@
+Metadata-Version: 2.4
+Name: pints
+Version: 0.1.0
+Summary: Python wrapper for PINTS (Pipelines for Non-Target Screening) using DuckDB
+Author-email: Your Name <your.email@example.com>
+License: MIT License
+        
+        Copyright (c) 2025 The PINTS Authors
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: duckdb>=1.0.0
+Requires-Dist: pandas>=2.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Dynamic: license-file
+
+# PINTS-Py
+
+Python wrapper for PINTS (Pipelines for Non-Target Screening).
+This package provides Python APIs and a command-line interface (CLI) to manage and query PINTS databases based on the pints-core-sql schema.
+
+## Features
+- Initialize and seed a DuckDB with the PINTS Core schema
+- Add samples, runs, and features programmatically
+- Export tables to CSV for downstream analysis
+- Query using either the Python API or the CLI (pints ...)
+- Reuses the universal SQL definitions from pints-core-sql
+
+## Installation
+Clone and install in editable mode:
+```bash
+git clone https://github.com/odea-project/pints-py.git
+cd pints-py
+python -m venv .venv                # For virtual environment
+.venv/Scripts/Activate.ps1          # For virtual environment on Windows PowerShell
+pip install -e .
+```
+
+This will also fetch the pints-core-sql submodule.
+
+## Quick Start
+Initialize a new PINTS database:
+```bash
+pints init --db pints.duckdb
+```
+Seed the database with the core schema:
+```bash
+pints seed --db pints.duckdb
+``` 
+
+Add a sample:
+```bash
+pints add-sample --db pints.duckdb --id S001 --type Sample --desc "River water"
+```
+
+Add a run linked to the sample:
+```bash
+pints add-run --db pints.duckdb --id R001 --sample S001 --time "2025-09-12 09:00:00" --instrument QTOF-XYZ --method POS_5min --batch B01
+```
+
+Add a feature linked to the run:
+```bash
+pints add-feature --db pints.duckdb --id R001_F0001 --run R001 --mz 301.123456 --rt 312.4 --area 154321.2
+```
+
+Export the features table to CSV:
+```bash 
+pints export features --db pints.duckdb --out features.csv
+```
+
+Check schema and vocabulary versions:
+```bash 
+pints show-version --db pints.duckdb
+```
+
+List all tables in the database:
+```bash
+pints list-tables --db pints.duckdb
+```
+
+## Development
+This repo depends on pints-core-sql as a Git submodule.
+After cloning, make sure to initialize submodules:
+```bash
+git submodule update --init --recursive
+```
+The SQL files from pints-core-sql/sql are synced into pints/sql before packaging.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
