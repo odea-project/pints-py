@@ -1,2 +1,0 @@
-[console_scripts]
-pints = pints.cli:main
