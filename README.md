@@ -23,43 +23,73 @@ pip install -e .
 This will also fetch the pints-core-sql submodule.
 
 ## Quick Start
-Initialize a new PINTS database:
+### Using Python CLI
+Initialize a new PINTS feature list:
 ```bash
-pints init --db pints.duckdb
+pints init --db myFeatures.duckdb
 ```
-Seed the database with the core schema:
+
+Seed the feature list with the core schema:
 ```bash
-pints seed --db pints.duckdb
+pints seed --db myFeatures.duckdb
 ``` 
 
 Add a sample:
 ```bash
-pints add-sample --db pints.duckdb --id S001 --type Sample --desc "River water"
+pints add-sample --db myFeatures.duckdb --id S001 --type Sample --desc "River water"
 ```
 
 Add a run linked to the sample:
 ```bash
-pints add-run --db pints.duckdb --id R001 --sample S001 --time "2025-09-12 09:00:00" --instrument QTOF-XYZ --method POS_5min --batch B01
+pints add-run --db myFeatures.duckdb --id R001 --sample S001 --time "2025-09-12 09:00:00" --instrument QTOF-XYZ --method POS_5min --batch B01
 ```
 
 Add a feature linked to the run:
 ```bash
-pints add-feature --db pints.duckdb --id R001_F0001 --run R001 --mz 301.123456 --rt 312.4 --area 154321.2
+pints add-feature --db myFeatures.duckdb --id R001_F0001 --run R001 --mz 301.123456 --rt 312.4 --area 154321.2
 ```
 
 Export the features table to CSV:
-```bash 
-pints export features --db pints.duckdb --out features.csv
+```bash
+pints export features --db myFeatures.duckdb --out features.csv
 ```
 
 Check schema and vocabulary versions:
-```bash 
-pints show-version --db pints.duckdb
+```bash
+pints show-version --db myFeatures.duckdb
 ```
 
 List all tables in the database:
 ```bash
-pints list-tables --db pints.duckdb
+pints list-tables --db myFeatures.duckdb
+```
+
+#### Using Plugins
+The CLI supports plugins for extended functionality from pints-plugins (e.g., intra_run_components).
+To use plugins, install them in the same environment:
+```bash
+pints migrate --db myFeatures.duckdb --file extern/pints-plugins/sql/intra_run_components/plugin.sql
+```
+
+Create staging table for plugin data:
+```bash
+pints run-sql --db myFeatures.duckdb --query "CREATE TABLE IF NOT EXISTS staging_intra_run_components (run_id TEXT, feature_id TEXT, intra_run_component_id TEXT);"
+```
+
+Add data using plugin commands:
+```bash
+pints run-sql --db myFeatures.duckdb --query "INSERT INTO staging_intra_run_components VALUES ('R001', 'R001_F0001', 'C0001'), ('R001', 'R001_F0002', 'C0001');"
+``` 
+
+Apply plugin schema:
+```bash
+pints run-sql --db myFeatures.duckdb --query extern/pints-plugins/sql/intra_run_components/materialize.sql
+```
+
+Export plugin tables:
+```bash
+pints run-sql --db myFeatures.duckdb --query "SELECT * FROM v_intra_run_components"
+pints export v_intra_run_components --db myFeatures.duckdb --out intra.csv
 ```
 
 ## Development
@@ -68,6 +98,7 @@ After cloning, make sure to initialize submodules:
 ```bash
 git submodule update --init --recursive
 ```
+
 The SQL files from pints-core-sql/sql are synced into pints/sql before packaging.
 
 ## License

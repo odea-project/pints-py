@@ -232,7 +232,7 @@ def main():
     s = sub.add_parser("set-prop", help="Set an algorithm-specific property (generic key–value store)")
     _default_db_arg(s)
     s.add_argument("--level", required=True, choices=["feature", "component_intra", "run"])
-    s.add_argument("--id", required=True, help="Entity id: feature_id / component_id / run_id")
+    s.add_argument("--id", required=True, help="Entity id: feature_id / intra_run_component_id / run_id")
     s.add_argument("--key", required=True, help="Property key, e.g. dqs, snr")
     s.add_argument("--value", type=float, default=None)
     s.add_argument("--value-text", default=None)
