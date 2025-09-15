@@ -68,7 +68,7 @@ pints list-tables --db myFeatures.duckdb
 The CLI supports plugins for extended functionality from pints-plugins (e.g., intra_run_components).
 To use plugins, install them in the same environment:
 ```bash
-pints migrate --db myFeatures.duckdb --file extern/pints-plugins/sql/intra_run_components/plugin.sql
+pints plugin install --db myFeatures.duckdb --name intra_run_components
 ```
 
 Create staging table for plugin data:
@@ -78,18 +78,12 @@ pints run-sql --db myFeatures.duckdb --query "CREATE TABLE IF NOT EXISTS staging
 
 Add data using plugin commands:
 ```bash
-pints run-sql --db myFeatures.duckdb --query "INSERT INTO staging_intra_run_components VALUES ('R001', 'R001_F0001', 'C0001'), ('R001', 'R001_F0002', 'C0001');"
+pints plugin insert --db myFeatures.duckdb --name intra_run_components --rows "R001,R001_F0001,C001" "R001,R001_F0002,C001" --materialize
 ``` 
-
-Apply plugin schema:
-```bash
-pints run-sql --db myFeatures.duckdb --query extern/pints-plugins/sql/intra_run_components/materialize.sql
-```
 
 Export plugin tables:
 ```bash
-pints run-sql --db myFeatures.duckdb --query "SELECT * FROM v_intra_run_components"
-pints export v_intra_run_components --db myFeatures.duckdb --out intra.csv
+pints plugin export --db my.duckdb --name intra_run_components --out intra.csv
 ```
 
 ## Development
