@@ -21,7 +21,7 @@ from __future__ import annotations
 from pathlib import Path
 from importlib.resources import files
 from typing import Optional, Any, Dict, Iterable
-
+import yaml
 import duckdb
 
 
@@ -207,6 +207,8 @@ class PintsDB:
     # ---------------- exports ----------------
     def export_sql(self, select_sql: str, csv_path: str, header: bool = True, params: Optional[Iterable[Any]] = None):
         """Export the result of a SELECT to CSV (supports bound params)."""
+        # Remove trailing semicolon to avoid DuckDB COPY syntax error
+        select_sql = select_sql.rstrip().rstrip(';')
         con = self._connect()
         path_lit = "'" + str(csv_path).replace("'", "''") + "'"
         header_clause = "HEADER" if header else "HEADER FALSE"
@@ -215,3 +217,98 @@ class PintsDB:
         else:
             con.execute(f"COPY ({select_sql}) TO {path_lit} (DELIMITER ',', {header_clause});")
         con.close()
+    
+    # ---------- plugin discovery ----------
+    def plugin_root(self, name: str, root: str | Path | None = None) -> Path:
+        base = Path(root) if root else Path("extern") / "pints-plugins" / "sql"
+        return base / name
+
+    def plugin_manifest(self, name: str, root: str | Path | None = None) -> dict:
+        plugdir = self.plugin_root(name, root)
+        mpath = plugdir / "manifest.yaml"
+        if not mpath.exists():
+            raise FileNotFoundError(f"manifest.yaml not found for plugin '{name}' at {mpath}")
+        return yaml.safe_load(mpath.read_text(encoding="utf-8"))
+
+    # ---------- install / schema ----------
+    def plugin_install(self, name: str, root: str | Path | None = None) -> None:
+        manifest = self.plugin_manifest(name, root)
+        plugdir = self.plugin_root(name, root)
+        schema_file = plugdir / manifest.get("schema", "plugin.sql")
+        if not schema_file.exists():
+            raise FileNotFoundError(f"Schema SQL not found: {schema_file}")
+        self.migrate(schema_file)
+
+    # ---------- staging ----------
+    def plugin_staging_create(self, name: str, root: str | Path | None = None) -> None:
+        m = self.plugin_manifest(name, root)
+        st = m.get("staging") or {}
+        table = st.get("table")
+        cols  = st.get("columns") or []
+        if not table or not cols:
+            return  # plugin may not use staging
+        ddl_cols = ", ".join(f"{c['name']} {c['type']}" for c in cols)
+        con = self._connect()
+        con.execute(f"CREATE TABLE IF NOT EXISTS {table} ({ddl_cols});")
+        con.close()
+
+    def plugin_staging_clear(self, name: str, root: str | Path | None = None) -> None:
+        m = self.plugin_manifest(name, root)
+        st = m.get("staging") or {}
+        table = st.get("table")
+        if not table:
+            return
+        con = self._connect()
+        con.execute(f"DELETE FROM {table};")
+        con.close()
+
+    def plugin_staging_load_csv(self, name: str, csv_path: str, root: str | Path | None = None) -> None:
+        m = self.plugin_manifest(name, root)
+        st = m.get("staging") or {}
+        table = st.get("table")
+        cols  = st.get("columns") or []
+        load  = (st.get("load") or {}).get("csv", {})
+        if not table or not cols:
+            raise ValueError(f"Plugin '{name}' does not define staging.table/columns in manifest.")
+        # ensure table exists
+        self.plugin_staging_create(name, root)
+        # COPY options
+        header     = load.get("header", True)
+        autodetect = load.get("autodetect", True)
+        delim      = load.get("delimiter", ",")
+        path_lit = "'" + str(csv_path).replace("'", "''") + "'"
+        header_opt = "HEADER" if header else "HEADER FALSE"
+        autod_opt  = "AUTO_DETECT TRUE" if autodetect else ""
+        delim_opt  = f"DELIMITER '{delim}'" if delim else ""
+        col_list = ", ".join(c["name"] for c in cols)
+        opts = ", ".join([o for o in [autod_opt, header_opt, delim_opt] if o])
+        con = self._connect()
+        con.execute(f"COPY {table} ({col_list}) FROM {path_lit} ({opts});")
+        con.close()
+
+    # ---------- actions (materialize/export/any) ----------
+    def _plugin_action_sql(self, name: str, action: str, root: str | Path | None = None) -> str:
+        m = self.plugin_manifest(name, root)
+        plugdir = self.plugin_root(name, root)
+        acts = {a["name"]: a for a in (m.get("actions") or [])}
+        if action not in acts:
+            raise KeyError(f"Plugin '{name}' has no action named '{action}'")
+        f = plugdir / acts[action]["file"]
+        if not f.exists():
+            raise FileNotFoundError(f"SQL for action '{action}' not found: {f}")
+        return f.read_text(encoding="utf-8"), acts[action]
+
+    def plugin_action_run(self, name: str, action: str, params: Optional[dict] = None,
+                          root: str | Path | None = None):
+        sql, meta = self._plugin_action_sql(name, action, root)
+        # Bind params in manifest order if provided
+        values: Optional[list[Any]] = None
+        if params and "params" in meta:
+            order = [p["name"] for p in meta["params"]]
+            values = [params.get(k, p.get("default")) for p, k in zip(meta["params"], order)]
+        return self.run_sql(sql, values)
+
+    def plugin_export(self, name: str, out_csv: str, action: str = "export",
+                      root: str | Path | None = None, header: bool = True):
+        sql, _ = self._plugin_action_sql(name, action, root)
+        self.export_sql(sql, out_csv, header=header)

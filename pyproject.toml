@@ -10,7 +10,7 @@ authors = [{ name = "Your Name", email = "your.email@example.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = ["duckdb>=1.0.0", "pandas>=2.0.0"]
+dependencies = ["duckdb>=1.0.0", "pandas>=2.0.0", "pyyaml>=6.0"]
 
 [project.scripts]
 pints = "pints.cli:main"
