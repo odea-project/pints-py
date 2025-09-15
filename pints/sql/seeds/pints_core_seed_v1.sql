@@ -51,10 +51,10 @@ INSERT INTO samples(sample_id, sample_type, description) VALUES
 INSERT INTO runs(run_id, sample_id, acq_time_utc, instrument, method_id, batch_id) VALUES
 ('R001','S001','2025-09-12 09:00:00','QTOF-XYZ','POS_5min','B01');
 
-INSERT INTO features(feature_id, run_id, mz, rt, area) VALUES
-('R001_F0001','R001',301.123456,312.4,154321.2),
-('R001_F0002','R001',445.234567,313.1,  53211.0),
-('R001_F0003','R001',150.045678,115.8,  10342.5);
+INSERT INTO features(feature_id, run_id, sample_id, mz, rt, area) VALUES
+('R001_F0001','R001','S001',301.123456,312.4,154321.2),
+('R001_F0002','R001','S001',445.234567,313.1,  53211.0),
+('R001_F0003','R001','S001',150.045678,115.8,  10342.5);
 
 -- ============================================
 -- End of PINTS Core Seed v1.0.0

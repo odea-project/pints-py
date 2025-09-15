@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS runs (
 CREATE TABLE IF NOT EXISTS features (
   feature_id  TEXT PRIMARY KEY,
   run_id      TEXT NOT NULL REFERENCES runs(run_id),
+  sample_id   TEXT NOT NULL REFERENCES samples(sample_id),
   mz          DOUBLE NOT NULL,       -- PSI-MS: MS:1000744 (mass/charge)
   rt          DOUBLE,                -- PSI-MS: MS:1000894 (retention time in seconds)
   area        DOUBLE                 -- PSI-MS: MS:1000040 (arbitrary units)
