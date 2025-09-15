@@ -71,11 +71,6 @@ To use plugins, install them in the same environment:
 pints plugin install --db myFeatures.duckdb --name intra_run_components
 ```
 
-Create staging table for plugin data:
-```bash
-pints run-sql --db myFeatures.duckdb --query "CREATE TABLE IF NOT EXISTS staging_intra_run_components (run_id TEXT, feature_id TEXT, intra_run_component_id TEXT);"
-```
-
 Add data using plugin commands:
 ```bash
 pints plugin insert --db myFeatures.duckdb --name intra_run_components --rows "R001,R001_F0001,C001" "R001,R001_F0002,C001" --materialize
