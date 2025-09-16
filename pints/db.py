@@ -57,13 +57,13 @@ class PintsDB:
     def init_schema(self) -> None:
         """Create the PINTS core schema (idempotent)."""
         con = self._connect()
-        con.execute(_load_sql("pints_core_v1.sql"))
+        con.execute(_load_sql("core/pints_core_v1.sql"))
         con.close()
 
     def seed_minimal_vocab(self) -> None:
         """Insert minimal PSI-MS and UO mappings + tiny demo rows."""
         con = self._connect()
-        con.execute(_load_sql("pints_core_seed_v1.sql"))
+        con.execute(_load_sql("seeds/pints_core_seed_v1.sql"))
         con.close()
 
     # ---------------- inserts (upserts) ----------------

@@ -37,25 +37,6 @@ def copy_tree(src: Path, dst: Path) -> list[Path]:
         print(f"[pints-sync] copied: {rel}")
     return copied
 
-def make_shortcuts(dst: Path) -> None:
-    """
-    Create top-level shortcuts for the common core files:
-      - pints_core_v1.sql       <- dst/core/pints_core_v1.sql
-      - pints_core_seed_v1.sql  <- dst/seeds/pints_core_seed_v1.sql
-    Only created if sources exist.
-    """
-    core_src  = dst / "core" / "pints_core_v1.sql"
-    seed_src  = dst / "seeds" / "pints_core_seed_v1.sql"
-    core_dst  = dst / "pints_core_v1.sql"
-    seed_dst  = dst / "pints_core_seed_v1.sql"
-
-    if core_src.exists():
-        shutil.copy2(core_src, core_dst)
-        print(f"[pints-sync] shortcut: {core_dst.name} -> core/pints_core_v1.sql")
-    if seed_src.exists():
-        shutil.copy2(seed_src, seed_dst)
-        print(f"[pints-sync] shortcut: {seed_dst.name} -> seeds/pints_core_seed_v1.sql")
-
 def write_core_version(dst: Path, version_file: Path) -> None:
     """Write core VERSION into pints/sql/CORE_VERSION (if VERSION exists in submodule)."""
     if version_file.exists():
@@ -99,7 +80,6 @@ def main():
     copied = copy_tree(src, dst)
     if not copied:
         print("[pints-sync] warning: no .sql files found under source.")
-    make_shortcuts(dst)
 
     # Write core version (optional)
     write_core_version(dst, CORE_VERSION_FILE)
