@@ -46,7 +46,7 @@ pints add-run --db myFeatures.duckdb --id R001 --sample S001 --time "2025-09-12 
 
 Add a feature linked to the run:
 ```bash
-pints add-feature --db myFeatures.duckdb --id R001_F0001 --run R001 --mz 301.123456 --rt 312.4 --area 154321.2
+pints add-feature --db myFeatures.duckdb --id R001_F0001 --run R001 --sample S001 --mz 301.123456 --rt 312.4 --area 154321.2
 ```
 
 Export the features table to CSV:
