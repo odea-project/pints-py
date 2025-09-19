@@ -91,7 +91,7 @@ def cmd_add_run(args):
 
 def cmd_add_feature(args):
     db = PintsDB(args.db)
-    db.add_feature(args.id, run_id=args.run, mz=args.mz, rt=args.rt, area=args.area)
+    db.add_feature(args.id, run_id=args.run, sample_id=args.sample, mz=args.mz, rt=args.rt, area=args.area)
     print(f"✅ Feature '{args.id}' upserted")
 
 
@@ -314,6 +314,7 @@ def main():
     _default_db_arg(s)
     s.add_argument("--id", required=True)
     s.add_argument("--run", required=True)
+    s.add_argument("--sample", required=True)
     s.add_argument("--mz", type=float, required=True)
     s.add_argument("--rt", type=float, default=None)
     s.add_argument("--area", type=float, default=None)

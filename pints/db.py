@@ -95,15 +95,15 @@ class PintsDB:
         )
         con.close()
 
-    def add_feature(self, feature_id: str, run_id: str, mz: float, rt: float | None = None, area: float | None = None) -> None:
+    def add_feature(self, feature_id: str, run_id: str, sample_id: str, mz: float, rt: float | None = None, area: float | None = None) -> None:
         con = self._connect()
         con.execute(
             """
             INSERT OR REPLACE INTO features
-              (feature_id, run_id, mz, rt, area)
-            VALUES (?,?,?,?,?)
+              (feature_id, run_id, sample_id, mz, rt, area)
+            VALUES (?,?,?,?,?,?)
             """,
-            [feature_id, run_id, mz, rt, area],
+            [feature_id, run_id, sample_id, mz, rt, area],
         )
         con.close()
 
