@@ -22,6 +22,17 @@ pip install -e .
 
 This will also fetch the pints-core-sql submodule.
 
+## Update Submodules
+To update the pints-core-sql submodule to the latest commit on its main branch:
+```bash
+cd extern/pints-plugins
+git fetch origin
+git checkout main        # oder dein Branchname
+git pull origin main
+cd ../..
+```
+Then commit the updated submodule reference in the main repo.
+
 ## Quick Start
 ### Using Python CLI
 Initialize a new PINTS feature list:
